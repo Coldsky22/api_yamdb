@@ -1,4 +1,5 @@
 from reviews.models import Category, Genre, Title
+from .paginations import GenreCategoryPagination
 from rest_framework.permissions import (
     SAFE_METHODS,
     AllowAny,
@@ -36,6 +37,9 @@ class CategoryViewSet(viewsets.GenericViewSet,
                       mixins.DestroyModelMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = GenreCategoryPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(viewsets.GenericViewSet,
@@ -44,6 +48,9 @@ class GenreViewSet(viewsets.GenericViewSet,
                    mixins.DestroyModelMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    pagination_class = GenreCategoryPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class TitleViewSet(viewsets.ModelViewSet):

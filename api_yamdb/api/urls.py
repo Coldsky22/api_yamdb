@@ -4,7 +4,6 @@ from rest_framework import routers
 from .views import (CategoryViewSet, GenreViewSet,
                     TitleViewSet,
                     SignupView,
-                    SignupView,
                     MeView,
                     UserViewSet,
                     TokenView,)
@@ -15,22 +14,24 @@ router.register('genres', GenreViewSet)
 router.register('titles', TitleViewSet)
 
 
-urlpatterns = [
-    path('', include(router.urls))
-]
 router = routers.DefaultRouter()
+
+
 router.register(
     r'users',
     UserViewSet,
     basename='user',
 )
+router.register('categories', CategoryViewSet)
+router.register('genres', GenreViewSet)
+router.register('titles', TitleViewSet)
 
 urlpatterns = [
+    path('', include(router.urls)),
     path('auth/token/', TokenView.as_view(),
          name='create_token'),
     path('auth/signup/', SignupView.as_view(), name='signup'),
     path('users/me/', MeView.as_view(), name='me'),
-    path('', include(router.urls)),
 ]
 
 # urlpatterns = [
