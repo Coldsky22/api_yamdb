@@ -1,3 +1,6 @@
+from rest_framework import viewsets, mixins
+from reviews.models import Category
+from .serializers import (CategorySerializer)
 from rest_framework.permissions import (
     SAFE_METHODS,
     AllowAny,
@@ -24,6 +27,13 @@ from api.serializers import (
     TokenSerializer,)
 from user.models import User
 from api.code_generator import send_confirmation_code
+
+class CategoryViewSet(viewsets.GenericViewSet,
+                      mixins.ListModelMixin,
+                      mixins.CreateModelMixin,
+                      mixins.DestroyModelMixin):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
 
 class UserViewSet(ModelViewSet):
