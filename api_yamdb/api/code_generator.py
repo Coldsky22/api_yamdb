@@ -16,6 +16,8 @@ def send_confirmation_code(request):
     user.confirmation_code = get_code()
     user.save()
     send_mail(
+        'данные для получеия токена',
         f'Код подтверждения {user.confirmation_code}',
+        'token@yamdb.ru',
         [request.data.get('email')],
     )

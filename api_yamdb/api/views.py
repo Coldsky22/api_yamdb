@@ -21,13 +21,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from api.serializers import (
     CategorySerializer,
     GenreSerializer,
-    TitleSerializer
+    TitleSerializer,
     SignupSerializer,
     UserSerializer,
     MeSerializer,
     TokenSerializer,)
 from user.models import User
 from api.code_generator import send_confirmation_code
+
 
 class CategoryViewSet(viewsets.GenericViewSet,
                       mixins.ListModelMixin,
@@ -48,8 +49,8 @@ class GenreViewSet(viewsets.GenericViewSet,
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    
-    
+
+
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
