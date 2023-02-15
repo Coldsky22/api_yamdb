@@ -1,0 +1,21 @@
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from django.utils.crypto import get_random_string
+
+from user.models import User
+
+
+def get_code():
+    chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%&*'
+    return get_random_string(20, chars)
+
+
+def send_confirmation_code(request):
+    user = get_object_or_404(User,
+                             username=request.data.get('username'))
+    user.confirmation_code = get_code()
+    user.save()
+    send_mail(
+        f'Код подтверждения {user.confirmation_code}',
+        [request.data.get('email')],
+    )
