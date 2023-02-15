@@ -1,3 +1,4 @@
+from reviews.models import Category, Genre, Title
 from rest_framework.permissions import (
     SAFE_METHODS,
     AllowAny,
@@ -7,7 +8,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
-from rest_framework import filters, status
+from rest_framework import filters, status, viewsets, mixins
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 from api.permissions import (
@@ -18,6 +19,9 @@ from api.permissions import (
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.serializers import (
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer
     SignupSerializer,
     UserSerializer,
     MeSerializer,
@@ -25,7 +29,27 @@ from api.serializers import (
 from user.models import User
 from api.code_generator import send_confirmation_code
 
+class CategoryViewSet(viewsets.GenericViewSet,
+                      mixins.ListModelMixin,
+                      mixins.CreateModelMixin,
+                      mixins.DestroyModelMixin):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
+
+class GenreViewSet(viewsets.GenericViewSet,
+                   mixins.ListModelMixin,
+                   mixins.CreateModelMixin,
+                   mixins.DestroyModelMixin):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    
+    
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer

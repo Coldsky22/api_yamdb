@@ -1,7 +1,32 @@
+from rest_framework import serializers
+from reviews.models import Category, Genre, Title
 from user.models import User
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
 from django.shortcuts import get_object_or_404
+
+
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ('id', 'name', 'slug')
+        model = Category
+
+
+class GenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ('id', 'name', 'slug')
+        model = Genre
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(read_only=True, many=True)
+    category = CategorySerializer(read_only=True)
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'rating', 'description', 'category', 'genre')
+        model = Title
 
 
 class UserSerializer(serializers.ModelSerializer):

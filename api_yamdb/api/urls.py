@@ -1,12 +1,22 @@
-from django.urls import include, path
+from django.urls import path, include
+from rest_framework.routers import SimpleRouter
 from rest_framework import routers
+from .views import (CategoryViewSet, GenreViewSet,
+                    TitleViewSetSignupView,
+                    SignupView,
+                    MeView,
+                    UserViewSet,
+                    TokenView,
 
-from api.views import (
-    SignupView,
-    MeView,
-    UserViewSet,
-    TokenView,
-)
+router = SimpleRouter()
+router.register('categories', CategoryViewSet)
+router.register('genres', GenreViewSet)
+router.register('titles', TitleViewSet)
+
+
+urlpatterns = [
+    path('', include(router.urls))
+]
 router = routers.DefaultRouter()
 router.register(
     r'users',
@@ -30,3 +40,4 @@ urlpatterns = [
     path('v1/auth/token/', TokenView.as_view(), name='activation'),
     path('v1/', include(router.urls)),
 ]
+
