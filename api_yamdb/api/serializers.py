@@ -1,4 +1,3 @@
-from rest_framework import serializers
 from reviews.models import Category, Genre, Title
 from user.models import User
 from rest_framework import serializers
@@ -9,24 +8,39 @@ from django.shortcuts import get_object_or_404
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
         model = Genre
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer(read_only=True, many=True)
-    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
 
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'category', 'genre')
         model = Title
+
+    def create(self, validated_data):
+        genres = validated_data.pop('genre')
+        category = validated_data.pop('category')
+        print(category)
+
+        title = Title.objects.create(**validated_data)
+
+        for genre in genres:
+            current_genre, created = Genre.objects.get_or_create(**genre)
+            title.genre.add(current_genre)
+        current_category, status = Category.objects.get_or_create(**category)
+        title.category = current_category
+
+        return title
 
 
 class UserSerializer(serializers.ModelSerializer):
