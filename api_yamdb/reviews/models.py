@@ -12,7 +12,7 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    name = models.TextField()
+    name = models.TextField(max_length=256)
     year = models.IntegerField()
     rating = models.IntegerField(null=True)
     description = models.TextField(blank=True)

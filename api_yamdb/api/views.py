@@ -1,5 +1,5 @@
 from reviews.models import Category, Genre, Title
-from .paginations import GenreCategoryPagination
+from .paginations import (GenreCategoryPagination, TitlePagination)
 from rest_framework.permissions import (
     SAFE_METHODS,
     AllowAny,
@@ -23,12 +23,14 @@ from api.serializers import (
     CategorySerializer,
     GenreSerializer,
     TitleSerializer,
+    TitleCreateSerializer,
     SignupSerializer,
     UserSerializer,
     MeSerializer,
     TokenSerializer,)
 from user.models import User
 from api.code_generator import send_confirmation_code
+from .filters import TitleFilter
 
 
 class CategoryViewSet(viewsets.GenericViewSet,
@@ -56,6 +58,14 @@ class GenreViewSet(viewsets.GenericViewSet,
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
+    pagination_class = TitlePagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.action in ('create', 'partial_update'):
+            return TitleCreateSerializer
+        return TitleSerializer
 
 
 class UserViewSet(ModelViewSet):
