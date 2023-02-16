@@ -3,6 +3,7 @@ from user.models import User
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
 from django.shortcuts import get_object_or_404
+import datetime as dt
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -20,27 +21,30 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
+    genre = GenreSerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
 
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'category', 'genre')
         model = Title
 
-    def create(self, validated_data):
-        genres = validated_data.pop('genre')
-        category = validated_data.pop('category')
-        print(category)
 
-        title = Title.objects.create(**validated_data)
+class TitleCreateSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        many=True, slug_field='slug', queryset=Genre.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Category.objects.all()
+    )
 
-        for genre in genres:
-            current_genre, created = Genre.objects.get_or_create(**genre)
-            title.genre.add(current_genre)
-        current_category, status = Category.objects.get_or_create(**category)
-        title.category = current_category
+    class Meta:
+        fields = ('id', 'name', 'year', 'description', 'category', 'genre')
+        model = Title
 
-        return title
+    def validate_year(self, value):
+        if dt.datetime.now().year < value:
+            raise serializers.ValidationError('Некорректная дата выпуска произведения!')
+        return value
 
 
 class UserSerializer(serializers.ModelSerializer):
