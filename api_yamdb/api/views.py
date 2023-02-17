@@ -14,7 +14,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
 from api.permissions import (
     IsAdminOrReadOnly,
-    IsAdmin,
+    IsAdminUser,
     IsAuthorOrModerPermission,
 )
 from django_filters.rest_framework import DjangoFilterBackend
@@ -71,17 +71,22 @@ class TitleViewSet(viewsets.ModelViewSet):
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    lookup_name = 'username'
+    lookup_field = 'username'
     http_method_names = ('get', 'post', 'patch', 'delete')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, IsAdminUser)
 
 
 class MeView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
+        me = get_object_or_404(User, username=request.user.username)
+        serializer = UserSerializer(me)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
         me = get_object_or_404(User, username=request.user.username)
         serializer = MeSerializer(me, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)

@@ -31,12 +31,10 @@ class User(AbstractUser):
     confirmation_code = models.CharField(max_length=25, blank=True,
                                          verbose_name='Код подтвердения',)
 
+    @property
+    def is_admin(self):
+        return (self.role == Role.ADMIN or self.is_staff or self.is_superuser)
 
-@property
-def is_admin(self):
-    return (self.role == Role.ADMIN or self.is_staff or self.is_superuser)
-
-
-@property
-def is_moder(self):
-    return self.role == Role.MODERATOR
+    @property
+    def is_moder(self):
+        return self.role == Role.MODERATOR
