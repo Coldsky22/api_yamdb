@@ -39,9 +39,11 @@ class CategoryViewSet(viewsets.GenericViewSet,
                       mixins.DestroyModelMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    lookup_field = 'slug'
     pagination_class = GenreCategoryPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
 
 
 class GenreViewSet(viewsets.GenericViewSet,
@@ -50,9 +52,11 @@ class GenreViewSet(viewsets.GenericViewSet,
                    mixins.DestroyModelMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    lookup_field = 'slug'
     pagination_class = GenreCategoryPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -61,6 +65,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = TitlePagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):
