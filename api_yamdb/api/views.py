@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from reviews.models import Category, Genre, Title, Review
 from .paginations import (GenreCategoryPagination, TitlePagination)
 from rest_framework.permissions import (
@@ -136,6 +137,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
             Title,
             id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
+        score_avg = Review.objects.filter(title=title).aggregate(Avg("score"))
+        title.rating = score_avg['score__avg']
+        title.save()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
