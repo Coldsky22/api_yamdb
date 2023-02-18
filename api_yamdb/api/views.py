@@ -57,10 +57,7 @@ class GenreViewSet(viewsets.GenericViewSet,
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
-<<<<<<< HEAD
     permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
-=======
->>>>>>> 083af280a1364c3b4b408bdeed802c3b8c8c6c39
     pagination_class = GenreCategoryPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
