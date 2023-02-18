@@ -31,7 +31,8 @@ class TitleSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
 
     class Meta:
-        fields = ('id', 'name', 'year', 'rating', 'description', 'category', 'genre')
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'category', 'genre')
         model = Title
 
 
@@ -49,7 +50,8 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 
     def validate_year(self, value):
         if dt.datetime.now().year < value:
-            raise serializers.ValidationError('Некорректная дата выпуска произведения!')
+            raise serializers.ValidationError(
+                'Некорректная дата выпуска произведения!')
         return value
 
 

@@ -16,7 +16,6 @@ from api.permissions import (
     IsAdminOrReadOnly,
     IsAdminUser,
     IsAuthorOrModerPermission,
-    IsAdminModeratorAuthorPermission
 )
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -47,7 +46,6 @@ class CategoryViewSet(viewsets.GenericViewSet,
     permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
 
 
 class GenreViewSet(viewsets.GenericViewSet,
@@ -61,7 +59,6 @@ class GenreViewSet(viewsets.GenericViewSet,
     pagination_class = GenreCategoryPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -71,7 +68,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
     filterset_class = TitleFilter
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):
@@ -126,7 +122,8 @@ class SignupView(APIView):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,
+                          IsAuthorOrModerPermission,)
 
     def get_queryset(self):
         title = get_object_or_404(
