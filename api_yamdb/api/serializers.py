@@ -22,7 +22,11 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
         model = Genre
+<<<<<<< HEAD
         lookup_field = 'slug'
+=======
+        lookup_field = 'slug' 
+>>>>>>> 083af280a1364c3b4b408bdeed802c3b8c8c6c39
 
 
 class TitleSerializer(serializers.ModelSerializer):

@@ -47,6 +47,7 @@ class CategoryViewSet(viewsets.GenericViewSet,
     permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
 
 
 class GenreViewSet(viewsets.GenericViewSet,
@@ -56,10 +57,14 @@ class GenreViewSet(viewsets.GenericViewSet,
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
+<<<<<<< HEAD
     permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
+=======
+>>>>>>> 083af280a1364c3b4b408bdeed802c3b8c8c6c39
     pagination_class = GenreCategoryPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -69,6 +74,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
     filterset_class = TitleFilter
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):
