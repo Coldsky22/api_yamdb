@@ -32,6 +32,8 @@ class Title(models.Model):
 
 
 class Review(models.Model):
+    """модель написания отзывов, на одно производение,
+    одним пользователем, может быть написан только один отзыв"""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -73,6 +75,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """модель создания комментариев к отзывам на произведение"""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
