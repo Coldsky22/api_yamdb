@@ -1,10 +1,10 @@
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Genre, Title, Review
 from .paginations import (GenreCategoryPagination, TitlePagination)
 from rest_framework.permissions import (
     SAFE_METHODS,
     AllowAny,
     IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
+    IsAuthenticatedOrReadOnly
 )
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -16,6 +16,7 @@ from api.permissions import (
     IsAdminOrReadOnly,
     IsAdminUser,
     IsAuthorOrModerPermission,
+    IsAdminModeratorAuthorPermission
 )
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -27,7 +28,9 @@ from api.serializers import (
     SignupSerializer,
     UserSerializer,
     MeSerializer,
-    TokenSerializer,)
+    TokenSerializer,
+    CommentSerializer,
+    ReviewSerializer)
 from user.models import User
 from api.code_generator import send_confirmation_code
 from .filters import TitleFilter
@@ -39,7 +42,9 @@ class CategoryViewSet(viewsets.GenericViewSet,
                       mixins.DestroyModelMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    lookup_field = 'slug'
     pagination_class = GenreCategoryPagination
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -50,6 +55,8 @@ class GenreViewSet(viewsets.GenericViewSet,
                    mixins.DestroyModelMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    lookup_field = 'slug'
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
     pagination_class = GenreCategoryPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -60,6 +67,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     pagination_class = TitlePagination
     filter_backends = (DjangoFilterBackend,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
@@ -111,3 +119,40 @@ class SignupView(APIView):
         serializer.save()
         send_confirmation_code(request)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        title = get_object_or_404(
+            Title,
+            id=self.kwargs.get('title_id'))
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(
+            Title,
+            id=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = (
+        IsAuthorOrModerPermission,
+        IsAuthenticatedOrReadOnly,
+    )
+
+    def get_queryset(self):
+        review = get_object_or_404(
+            Review,
+            pk=self.kwargs.get('review_id'))
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        review = get_object_or_404(
+            Review,
+            pk=self.kwargs.get('review_id'))
+        serializer.save(author=self.request.user, review=review)
