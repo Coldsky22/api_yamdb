@@ -18,10 +18,12 @@ class UserManagerYaMDB(UserManager):
 
 class User(AbstractUser):
     objects = UserManagerYaMDB()
-
+    last_name = models.CharField(max_length=150, blank=True, null=True)
+    first_name = models.CharField(max_length=150, blank=True, null=True)
     bio = models.TextField(
         verbose_name='Биография',
         blank=True,
+        null=True
     )
     role = models.CharField(
         max_length=9,
@@ -37,8 +39,10 @@ class User(AbstractUser):
     confirmation_code = models.CharField(
         max_length=20,
         blank=True,
+        null=True,
         verbose_name='Код подтверждения',
     )
+    password = models.CharField(blank=True, null=True, max_length=128)
 
     class Meta:
         verbose_name = 'Пользователь'

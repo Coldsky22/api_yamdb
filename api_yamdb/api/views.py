@@ -2,7 +2,6 @@ from django.db.models import Avg
 from reviews.models import Category, Genre, Title, Review
 from .paginations import (GenreCategoryPagination, TitlePagination)
 from rest_framework.permissions import (
-    SAFE_METHODS,
     AllowAny,
     IsAuthenticated,
     IsAuthenticatedOrReadOnly
@@ -40,7 +39,7 @@ class CategoryViewSet(viewsets.GenericViewSet,
                       mixins.ListModelMixin,
                       mixins.CreateModelMixin,
                       mixins.DestroyModelMixin):
-    queryset = Category.objects.all()
+    queryset = Category.objects.order_by('id').all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
     pagination_class = GenreCategoryPagination
@@ -53,7 +52,7 @@ class GenreViewSet(viewsets.GenericViewSet,
                    mixins.ListModelMixin,
                    mixins.CreateModelMixin,
                    mixins.DestroyModelMixin):
-    queryset = Genre.objects.all()
+    queryset = Genre.objects.order_by('id').all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
     permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
@@ -63,7 +62,7 @@ class GenreViewSet(viewsets.GenericViewSet,
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.order_by('id').all()
     serializer_class = TitleSerializer
     pagination_class = TitlePagination
     filter_backends = (DjangoFilterBackend,)
