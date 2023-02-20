@@ -1,5 +1,4 @@
 from reviews.models import Category, Genre, Title, Review, Comment
-from user.models import User
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
 from django.shortcuts import get_object_or_404
@@ -22,7 +21,6 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('name', 'slug')
         model = Genre
-        lookup_field = 'slug'
         lookup_field = 'slug'
 
 
