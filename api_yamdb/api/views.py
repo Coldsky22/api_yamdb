@@ -1,10 +1,10 @@
 from django.db.models import Avg
 from reviews.models import Category, Genre, Title, Review
-from .paginations import (GenreCategoryPagination, TitlePagination)
+from api.paginations import (GenreCategoryPagination, TitlePagination)
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
-    IsAuthenticatedOrReadOnly
+    IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -32,7 +32,7 @@ from api.serializers import (
     ReviewSerializer)
 from user.models import User
 from api.code_generator import send_confirmation_code
-from .filters import TitleFilter
+from api.filters import TitleFilter
 
 
 class CategoryViewSet(viewsets.GenericViewSet,
@@ -44,7 +44,7 @@ class CategoryViewSet(viewsets.GenericViewSet,
     serializer_class = CategorySerializer
     lookup_field = 'slug'
     pagination_class = GenreCategoryPagination
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
@@ -57,7 +57,7 @@ class GenreViewSet(viewsets.GenericViewSet,
     queryset = Genre.objects.order_by('id').all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
     pagination_class = GenreCategoryPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -69,7 +69,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     pagination_class = TitlePagination
     filter_backends = (DjangoFilterBackend,)
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
@@ -132,7 +132,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     администратором и модератором"""
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
-                          IsAuthorOrModerPermission,)
+                          IsAuthorOrModerPermission)
 
     def get_queryset(self):
         title = get_object_or_404(

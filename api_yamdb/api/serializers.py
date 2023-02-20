@@ -36,10 +36,10 @@ class TitleSerializer(serializers.ModelSerializer):
 
 class TitleCreateSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
-        many=True, slug_field='slug', queryset=Genre.objects.all()
+        many=True, slug_field='slug', queryset=Genre.objects.all(),
     )
     category = serializers.SlugRelatedField(
-        slug_field='slug', queryset=Category.objects.all()
+        slug_field='slug', queryset=Category.objects.all(),
     )
 
     class Meta:
@@ -60,7 +60,7 @@ class UserSerializer(serializers.ModelSerializer):
                   'first_name',
                   'last_name',
                   'bio',
-                  'role',)
+                  'role')
         model = User
 
 
@@ -95,11 +95,11 @@ class SignupSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     title = serializers.SlugRelatedField(
         slug_field='name',
-        read_only=True
+        read_only=True,
     )
     author = serializers.SlugRelatedField(
         slug_field='username',
-        read_only=True
+        read_only=True,
     )
 
     def validate_score(self, value):
@@ -127,11 +127,11 @@ class ReviewSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     review = serializers.SlugRelatedField(
         slug_field='text',
-        read_only=True
+        read_only=True,
     )
     author = serializers.SlugRelatedField(
         slug_field='username',
-        read_only=True
+        read_only=True,
     )
 
     class Meta:

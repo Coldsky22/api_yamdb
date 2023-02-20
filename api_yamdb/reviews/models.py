@@ -22,12 +22,12 @@ class Title(models.Model):
         Category,
         on_delete=models.SET_NULL,
         blank=True,
-        null=True
+        null=True,
     )
     genre = models.ManyToManyField(
         Genre,
         blank=True,
-        null=True
+        null=True,
     )
 
 
@@ -40,24 +40,24 @@ class Review(models.Model):
         related_name='reviews',
     )
     text = models.TextField(
-        max_length=200
+        max_length=200,
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
     )
     score = models.IntegerField(
         'оценка',
         validators=(
             MinValueValidator(1),
-            MaxValueValidator(10)
+            MaxValueValidator(10),
         ),
     )
     pub_date = models.DateTimeField(
         'дата публикации',
         auto_now_add=True,
-        db_index=True
+        db_index=True,
     )
 
     class Meta:
@@ -65,8 +65,8 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
         constraints = [
             models.UniqueConstraint(
-                fields=('title', 'author', ),
-                name='unique review'
+                fields=('title', 'author'),
+                name='unique review',
             )]
         ordering = ('pub_date',)
 
@@ -79,21 +79,21 @@ class Comment(models.Model):
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name='comments',
     )
     text = models.TextField(
         'текст комментария',
-        max_length=200
+        max_length=200,
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name='comments',
     )
     pub_date = models.DateTimeField(
         'дата публикации',
         auto_now_add=True,
-        db_index=True
+        db_index=True,
     )
 
     class Meta:
