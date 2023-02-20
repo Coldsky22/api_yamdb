@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 import csv
 import sqlite3
 import datetime
+from api import code_generator
 
 
 class Command(BaseCommand):
@@ -76,58 +77,115 @@ class Command(BaseCommand):
                 res_dict[key] = value
         return res_dict
 
+    def save_avg_rating(self, connect: sqlite3.Connection,
+                        cursor: sqlite3.Cursor):
+        """Заполнение среднего рейтинга у произведения."""
+        sql_get_titles_id = (
+            '''
+            SELECT id
+            FROM reviews_title
+            '''
+        )
+        titles_id = cursor.execute(
+            sql_get_titles_id).fetchall()
+
+        for title_id in titles_id:
+            sql_get_avg_score = (
+                f'''
+                SELECT AVG(score)
+                FROM reviews_review
+                WHERE title_id={title_id[0]}
+                '''
+            )
+            title_avg_score = cursor.execute(
+                sql_get_avg_score).fetchall()
+
+            sql_add_rating = (
+                f'''
+                UPDATE reviews_title
+                SET rating = {int(title_avg_score[0][0])}
+                WHERE id = {title_id[0]}
+                '''
+            )
+            cursor.execute(sql_add_rating)
+        connect.commit()
+
     def handle(self, *args, **options):
+        # Подключение к БД
         con = sqlite3.connect('../api_yamdb/db.sqlite3')
         cur = con.cursor()
+        # Перебираем все файлы и соответствцющие таблицы БД
         for file_name, table_name in self.TABLE_NAMES.items():
-            self.stdout.write(f'Заполнение таблицы {table_name}........', ending='')
+            # Выводим в терминал информацию о заполнении таблицы
+            self.stdout.write(
+                f'Заполнение таблицы {table_name}........', ending='')
+            # Открываем файл
             with open(
                     'static/data/' + file_name,
                     newline='',
                     encoding='UTF8'
             ) as csvfile:
                 reader = csv.DictReader(csvfile, dialect='excel')
+                # Очищаем таблицу
                 self.clean_table(con, cur, table_name)
+                # Построчно считываем данные из файла в виде словаря:
+                # "Наименование поля":"Значение поля"
                 for row in reader:
+                    # Выгружаем названия полей таблицы из БД и
+                    # сравниваем с названиями полей в файле.
+                    # При необходимости корректируем и возвращаем
+                    # итоговый словарь.
                     prep_name_col = self.prep_name_columns(
                         self.get_name_columns_from_db(
                             cur, table_name, 0), row)
-
+                    # Удаляем из словаря поля с незаполненными значениями.
                     data_without_null_value = (self.del_null_values(
                         prep_name_col))
-
+                    # Получаем из словаря строку с названием полей таблицы.
                     name_columns = (self.get_keys_from_dict(
                         data_without_null_value))
-
+                    # Получаем из словаря строку со значениями полей таблицы.
                     values = self.prep_values(data_without_null_value)
-
+                    # Если загружаем данные в таблицу User,
+                    # то добавляем значения по умолчанию
                     if file_name == 'users.csv':
+                        # Генерируем код подтверждения и
+                        # добавляем в словарь дефолтных значений
+                        self.USER_DEFAULT_COLUMN['confirmation_code'] = str(
+                            code_generator.get_code())
+                        # Обогащаем строку с названиями полей таблицы
                         name_columns = (
                                 name_columns + ', ' +
                                 self.get_keys_from_dict(
                                     self.USER_DEFAULT_COLUMN))
-
+                        # Обогащаем строку со значениями полей таблицы
                         values = (values + ', ' +
                                   self.get_value_from_dict(
                                       self.USER_DEFAULT_COLUMN))
                     try:
-                        cur.execute(f'''INSERT INTO {table_name}
-                        ({name_columns})VALUES ({values});''')
-                    except sqlite3.IntegrityError:
+                        # Формируем SQL запрос для вставки строки в таблицу
+                        sql_add_row = (
+                            f'''
+                            INSERT INTO {table_name}
+                            ({name_columns})
+                            VALUES ({values});
+                            '''
+                        )
+                        # Вставляем строку в таблицу БД
+                        cur.execute(sql_add_row)
+                    except (sqlite3.IntegrityError,
+                            sqlite3.OperationalError) as error:
+                        # Выводим в терминал статус FAILED заполнения таблицы
                         self.stdout.write(self.style.ERROR('FAILED'))
+                        # Вывод информации об ошибке
                         self.stdout.write(
                             f">>> ОШИБКА. "
-                            f"Проверка на уникальность в "
-                            f"таблице {table_name}.\n "
-                            f"Обнаружен дубликат записи в "
-                            f"файле {file_name}.\n"
-                            f"{values}"
+                            f"Error: {error}"
                         )
-                    except sqlite3.OperationalError:
-                        self.stdout.write(self.style.ERROR('FAILED'))
-                        self.stdout.write(
-                            "ОШИБКА. Некорректно заполнены данные")
                     con.commit()
+                # Выводим в терминал статус SUCCESS заполнения таблицы
                 self.stdout.write(self.style.SUCCESS('SUCCESS'))
             csvfile.close()
+        # Высчитываем средний рейтинг и сохраняем его в Title.
+        self.save_avg_rating(con, cur)
         con.close()
