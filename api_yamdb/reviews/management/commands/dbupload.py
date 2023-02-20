@@ -152,13 +152,19 @@ class Command(BaseCommand):
                         self.USER_DEFAULT_COLUMN['confirmation_code'] = str(
                             code_generator.get_code())
                         # Обогащаем строку с названиями полей таблицы
-                        name_columns = (name_columns + ', '
-                                        + self.get_keys_from_dict(
-                                          self.USER_DEFAULT_COLUMN))
+                        name_columns = (
+                            name_columns
+                            + ', '
+                            + self.get_keys_from_dict(self.USER_DEFAULT_COLUMN)
+                        )
                         # Обогащаем строку со значениями полей таблицы
-                        values = (values + ', '
-                                  + self.get_value_from_dict(
-                                    self.USER_DEFAULT_COLUMN))
+                        values = (
+                            values
+                            + ', '
+                            + self.get_value_from_dict(
+                                self.USER_DEFAULT_COLUMN,
+                            )
+                        )
                     try:
                         # Формируем SQL запрос для вставки строки в таблицу
                         sql_add_row = (
@@ -176,8 +182,8 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.ERROR('FAILED'))
                         # Вывод информации об ошибке
                         self.stdout.write(
-                            f">>> ОШИБКА. "
-                            f"Error: {error}",
+                            f'>>> ОШИБКА. '
+                            f'Error: {error}',
                         )
                     con.commit()
                 # Выводим в терминал статус SUCCESS заполнения таблицы
