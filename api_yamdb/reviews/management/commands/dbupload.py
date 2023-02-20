@@ -13,21 +13,21 @@ class Command(BaseCommand):
         'genre_title.csv': 'reviews_title_genre',
         'review.csv': 'reviews_review',
         'titles.csv': 'reviews_title',
-        'users.csv': 'user_user'
+        'users.csv': 'user_user',
     }
 
     USER_DEFAULT_COLUMN = {
         'is_superuser': '0',
         'is_staff': '0',
         'is_active': '1',
-        'date_joined': str(datetime.datetime.now())
+        'date_joined': str(datetime.datetime.now()),
     }
 
     def get_name_columns_from_db(
             self, cursor: sqlite3.Cursor, table_name: str, out_par: int):
         """Возвращает list с названием полей из таблицы БД"""
         name_columns = cursor.execute(
-            f'''select * from {table_name} limit 1''')
+            f"""select * from {table_name} limit 1""")
         if out_par == 0:
             return [str(i[0]) for i in name_columns.description]
         if out_par == 1:
@@ -39,12 +39,12 @@ class Command(BaseCommand):
 
     def get_value_from_dict(self, row: dict):
         """Возвращает строку значений из словаря"""
-        return ', '.join('\'' + str(value) + '\'' for value in row.values())
+        return ', '.join("'" + str(value) + "'" for value in row.values())
 
     def clean_table(self, connect: sqlite3.Connection,
                     cursor: sqlite3.Cursor, table_name: str):
         """Очищение таблицы БД."""
-        cursor.execute(f'''DELETE FROM {table_name}''')
+        cursor.execute(f"""DELETE FROM {table_name}""")
         connect.commit()
 
     def del_null_values(self, data: dict):
@@ -60,10 +60,8 @@ class Command(BaseCommand):
         """Возвращает форматированную  строку со значениями из словаря.
         Значения в строке перечисляются через (,).
         Экранируется знак (') """
-        return (', '.join(
-            '\'' + str(value).replace("'", "''") +
-            '\'' for value in data.values()
-        ))
+        return (', '.join("'" + str(value).replace("'", "''")
+                          + "'" for value in data.values()))
 
     def prep_name_columns(self, name_columns_from_db: list,
                           row: dict):
@@ -81,31 +79,31 @@ class Command(BaseCommand):
                         cursor: sqlite3.Cursor):
         """Заполнение среднего рейтинга у произведения."""
         sql_get_titles_id = (
-            '''
+            """
             SELECT id
             FROM reviews_title
-            '''
+            """
         )
         titles_id = cursor.execute(
             sql_get_titles_id).fetchall()
 
         for title_id in titles_id:
             sql_get_avg_score = (
-                f'''
+                f"""
                 SELECT AVG(score)
                 FROM reviews_review
                 WHERE title_id={title_id[0]}
-                '''
+                """
             )
             title_avg_score = cursor.execute(
                 sql_get_avg_score).fetchall()
 
             sql_add_rating = (
-                f'''
+                f"""
                 UPDATE reviews_title
                 SET rating = {int(title_avg_score[0][0])}
                 WHERE id = {title_id[0]}
-                '''
+                """
             )
             cursor.execute(sql_add_rating)
         connect.commit()
@@ -123,7 +121,7 @@ class Command(BaseCommand):
             with open(
                     'static/data/' + file_name,
                     newline='',
-                    encoding='UTF8'
+                    encoding='UTF8',
             ) as csvfile:
                 reader = csv.DictReader(csvfile, dialect='excel')
                 # Очищаем таблицу
@@ -154,22 +152,21 @@ class Command(BaseCommand):
                         self.USER_DEFAULT_COLUMN['confirmation_code'] = str(
                             code_generator.get_code())
                         # Обогащаем строку с названиями полей таблицы
-                        name_columns = (
-                                name_columns + ', ' +
-                                self.get_keys_from_dict(
-                                    self.USER_DEFAULT_COLUMN))
+                        name_columns = (name_columns + ', '
+                                        + self.get_keys_from_dict(
+                                          self.USER_DEFAULT_COLUMN))
                         # Обогащаем строку со значениями полей таблицы
-                        values = (values + ', ' +
-                                  self.get_value_from_dict(
-                                      self.USER_DEFAULT_COLUMN))
+                        values = (values + ', '
+                                  + self.get_value_from_dict(
+                                    self.USER_DEFAULT_COLUMN))
                     try:
                         # Формируем SQL запрос для вставки строки в таблицу
                         sql_add_row = (
-                            f'''
+                            f"""
                             INSERT INTO {table_name}
                             ({name_columns})
                             VALUES ({values});
-                            '''
+                            """
                         )
                         # Вставляем строку в таблицу БД
                         cur.execute(sql_add_row)
@@ -179,8 +176,8 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.ERROR('FAILED'))
                         # Вывод информации об ошибке
                         self.stdout.write(
-                            f'>>> ОШИБКА. '
-                            f'Error: {error}'
+                            f">>> ОШИБКА. "
+                            f"Error: {error}",
                         )
                     con.commit()
                 # Выводим в терминал статус SUCCESS заполнения таблицы
