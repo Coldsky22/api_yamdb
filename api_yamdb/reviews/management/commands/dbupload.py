@@ -61,8 +61,8 @@ class Command(BaseCommand):
         Значения в строке перечисляются через (,).
         Экранируется знак (') """
         return (', '.join(
-            '\'' + str(value).replace("'", "''") +
-            '\'' for value in data.values()
+            '\'' + str(value).replace("'", "''")
+            + '\'' for value in data.values()
         ))
 
     def prep_name_columns(self, name_columns_from_db: list,
@@ -155,12 +155,12 @@ class Command(BaseCommand):
                             code_generator.get_code())
                         # Обогащаем строку с названиями полей таблицы
                         name_columns = (
-                                name_columns + ', ' +
-                                self.get_keys_from_dict(
-                                    self.USER_DEFAULT_COLUMN))
+                            name_columns + ', '
+                            + self.get_keys_from_dict(
+                                self.USER_DEFAULT_COLUMN))
                         # Обогащаем строку со значениями полей таблицы
-                        values = (values + ', ' +
-                                  self.get_value_from_dict(
+                        values = (values + ', '
+                                  + self.get_value_from_dict(
                                       self.USER_DEFAULT_COLUMN))
                     try:
                         # Формируем SQL запрос для вставки строки в таблицу
