@@ -39,6 +39,7 @@ class CategoryViewSet(viewsets.GenericViewSet,
                       mixins.ListModelMixin,
                       mixins.CreateModelMixin,
                       mixins.DestroyModelMixin):
+
     queryset = Category.objects.order_by('id').all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
@@ -52,6 +53,7 @@ class GenreViewSet(viewsets.GenericViewSet,
                    mixins.ListModelMixin,
                    mixins.CreateModelMixin,
                    mixins.DestroyModelMixin):
+
     queryset = Genre.objects.order_by('id').all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
@@ -62,6 +64,7 @@ class GenreViewSet(viewsets.GenericViewSet,
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+
     queryset = Title.objects.order_by('id').all()
     serializer_class = TitleSerializer
     pagination_class = TitlePagination
@@ -121,6 +124,12 @@ class SignupView(APIView):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+
+    """Получение списка всех отзывов без аутентификации,
+    получение отзыва по id произведения без аутентификации,
+    добавление нового отзыва авторизированным пользователем,
+    частичное изменение отзыва авторизировананный пользователем,
+    администратором и модератором"""
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsAuthorOrModerPermission,)
@@ -136,12 +145,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
             Title,
             id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
-        score_avg = Review.objects.filter(title=title).aggregate(Avg("score"))
+        score_avg = Review.objects.filter(title=title).aggregate(Avg('score'))
         title.rating = score_avg['score__avg']
         title.save()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+
+    """Реализовано добавление нового комментария к отзыву
+    авторизованным пользователем, обновление и удаление комментария
+    права у автора, админа и модератора, получить комментарий для
+    отзыва по id доступно без авторизации"""
     serializer_class = CommentSerializer
     permission_classes = (
         IsAuthorOrModerPermission,
@@ -151,11 +165,11 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         review = get_object_or_404(
             Review,
-            pk=self.kwargs.get('review_id'))
+            id=self.kwargs.get('review_id'))
         return review.comments.all()
 
     def perform_create(self, serializer):
         review = get_object_or_404(
             Review,
-            pk=self.kwargs.get('review_id'))
+            id=self.kwargs.get('review_id'))
         serializer.save(author=self.request.user, review=review)
