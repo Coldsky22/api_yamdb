@@ -35,12 +35,11 @@ from api.code_generator import send_confirmation_code
 from api.filters import TitleFilter
 
 
-class CategoryViewSet(viewsets.GenericViewSet,
-                      mixins.ListModelMixin,
-                      mixins.CreateModelMixin,
-                      mixins.DestroyModelMixin):
+class CategoryGenreViewSet(viewsets.GenericViewSet,
+                           mixins.ListModelMixin,
+                           mixins.CreateModelMixin,
+                           mixins.DestroyModelMixin):
 
-    queryset = Category.objects.order_by('id').all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
     pagination_class = GenreCategoryPagination
@@ -49,70 +48,83 @@ class CategoryViewSet(viewsets.GenericViewSet,
     search_fields = ('name',)
 
 
-class GenreViewSet(viewsets.GenericViewSet,
-                   mixins.ListModelMixin,
-                   mixins.CreateModelMixin,
-                   mixins.DestroyModelMixin):
+class CategoryViewSet(CategoryGenreViewSet):
 
-    queryset = Genre.objects.order_by('id').all()
-    serializer_class = GenreSerializer
-    lookup_field = 'slug'
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
-    pagination_class = GenreCategoryPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    queryset = Category.objects.all()
+
+    def get_serializer_class(self):
+        if self.kwargs.get('version') == 'v1':
+            return CategorySerializer
+
+
+class GenreViewSet(CategoryGenreViewSet):
+
+    queryset = Genre.objects.all()
+
+    def get_serializer_class(self):
+        if self.kwargs.get('version') == 'v1':
+            return GenreSerializer
 
 
 class TitleViewSet(viewsets.ModelViewSet):
 
-    queryset = Title.objects.order_by('id').all()
-    serializer_class = TitleSerializer
+    queryset = Title.objects.all()
     pagination_class = TitlePagination
     filter_backends = (DjangoFilterBackend,)
     permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
-        if self.action in ('create', 'partial_update'):
-            return TitleCreateSerializer
-        return TitleSerializer
+        if self.kwargs.get('version') == 'v1':
+            if self.action in ('create', 'partial_update'):
+                return TitleCreateSerializer
+            return TitleSerializer
 
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     lookup_field = 'username'
     http_method_names = ('get', 'post', 'patch', 'delete')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     permission_classes = (IsAuthenticated, IsAdminUser)
 
+    def get_serializer_class(self):
+        if self.kwargs.get('version') == 'v1':
+            return UserSerializer
+
 
 class MeView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def get(self, request, **kwargs):
         me = get_object_or_404(User, username=request.user.username)
-        serializer = UserSerializer(me)
+        if self.kwargs.get('version') == 'v1':
+            serializer = UserSerializer(me)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def patch(self, request):
+    def patch(self, request, **kwargs):
         me = get_object_or_404(User, username=request.user.username)
-        serializer = MeSerializer(me, data=request.data, partial=True)
+        if self.kwargs.get('version') == 'v1':
+            serializer = MeSerializer(me, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TokenView(TokenObtainPairView):
-    serializer_class = TokenSerializer
+
+    def get_serializer_class(self):
+        if self.kwargs.get('version') == 'v1':
+            return TokenSerializer
 
 
 class SignupView(APIView):
     permission_classes = (AllowAny,)
 
-    def post(self, request):
-        serializer = SignupSerializer(data=request.data)
+    def post(self, request, **kwargs):
+        if self.kwargs.get('version') == 'v1':
+            serializer = SignupSerializer(data=request.data)
         if User.objects.filter(username=request.data.get('username'),
                                email=request.data.get('email')).exists():
             send_confirmation_code(request)
@@ -130,7 +142,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     добавление нового отзыва авторизированным пользователем,
     частичное изменение отзыва авторизировананный пользователем,
     администратором и модератором"""
-    serializer_class = ReviewSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsAuthorOrModerPermission)
 
@@ -140,11 +151,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
             id=self.kwargs.get('title_id'))
         return title.reviews.all()
 
-    def perform_create(self, serializer):
+    def get_serializer_class(self):
+        if self.kwargs.get('version') == 'v1':
+            return ReviewSerializer
+
+    def perform_create(self, serializer, **kwargs):
         title = get_object_or_404(
             Title,
             id=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user, title=title)
+        if self.kwargs.get('version') == 'v1':
+            serializer.save(author=self.request.user, title=title)
         score_avg = Review.objects.filter(title=title).aggregate(Avg('score'))
         title.rating = score_avg['score__avg']
         title.save()
@@ -156,7 +172,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     авторизованным пользователем, обновление и удаление комментария
     права у автора, админа и модератора, получить комментарий для
     отзыва по id доступно без авторизации"""
-    serializer_class = CommentSerializer
     permission_classes = (
         IsAuthorOrModerPermission,
         IsAuthenticatedOrReadOnly,
@@ -167,6 +182,10 @@ class CommentViewSet(viewsets.ModelViewSet):
             Review,
             id=self.kwargs.get('review_id'))
         return review.comments.all()
+
+    def get_serializer_class(self):
+        if self.kwargs.get('version') == 'v1':
+            return CommentSerializer
 
     def perform_create(self, serializer):
         review = get_object_or_404(
