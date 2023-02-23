@@ -13,7 +13,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework import filters, status, viewsets, mixins
 from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -31,7 +30,6 @@ from api.serializers import (
     GenreSerializer,
     TitleSerializer,
     TitleCreateSerializer,
-    SignupSerializer,
     UserSerializer,
     MeSerializer,
     TokenSerializer,
@@ -39,7 +37,6 @@ from api.serializers import (
     ReviewSerializer,
     CreateUserSerializer)
 from user.models import User
-from api.code_generator import send_confirmation_code
 from api.filters import TitleFilter
 
 
@@ -122,14 +119,17 @@ class UserViewSet(ModelViewSet):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def create_user(request):
+def create_user(request, version):
     """Создание нового пользователя."""
-    serializer = CreateUserSerializer(data=request.data)
+    if version == 'v1':
+        serializer = CreateUserSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data.get('username')
     email = serializer.validated_data.get('email')
     user, _ = User.objects.get_or_create(username=username, email=email)
     token = default_token_generator.make_token(user)
+    user.confirmation_code = token
+    user.save()
 
     try:
         send_mail(
@@ -146,7 +146,6 @@ def create_user(request):
             data={'error': 'Ошибка при отправки кода подтверждения!'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
 
 
 class MeView(APIView):
@@ -169,36 +168,22 @@ class MeView(APIView):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def create_token(request):
-    serializer = TokenSerializer(data=request.data)
+def create_token(request, version):
+    if version == 'v1':
+        serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(
         User,
-        username=serializer.validated_data["username"]
+        username=request.data.get('username'),
     )
     if default_token_generator.check_token(
-        user, serializer.validated_data["confirmation_code"]
+            user,
+            request.data.get('confirmation_code'),
     ):
         token = AccessToken.for_user(user)
         return Response({"token": str(token)}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class SignupView(APIView):
-    permission_classes = (AllowAny,)
-
-    def post(self, request, **kwargs):
-        if self.kwargs.get('version') == 'v1':
-            serializer = SignupSerializer(data=request.data)
-        if User.objects.filter(username=request.data.get('username'),
-                               email=request.data.get('email')).exists():
-            send_confirmation_code(request)
-            return Response(request.data, status=status.HTTP_200_OK)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        send_confirmation_code(request)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -225,8 +210,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(
             Title,
             id=self.kwargs.get('title_id'))
-        if self.kwargs.get('version') == 'v1':
-            serializer.save(author=self.request.user, title=title)
+        serializer.save(author=self.request.user, title=title)
         score_avg = Review.objects.filter(title=title).aggregate(Avg('score'))
         title.rating = score_avg['score__avg']
         title.save()

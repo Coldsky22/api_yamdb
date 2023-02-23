@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 import csv
 import sqlite3
 import datetime
-from api import code_generator
 
 
 class Command(BaseCommand):
@@ -147,17 +146,15 @@ class Command(BaseCommand):
                     # Если загружаем данные в таблицу User,
                     # то добавляем значения по умолчанию
                     if file_name == 'users.csv':
-                        # Генерируем код подтверждения и
-                        # добавляем в словарь дефолтных значений
-                        self.USER_DEFAULT_COLUMN['confirmation_code'] = str(
-                            code_generator.get_code())
-                        # Обогащаем строку с названиями полей таблицы
+                        # Обогащаем дефолтными полями строку
+                        # с названиями полей таблицы
                         name_columns = (
                             name_columns
                             + ', '
                             + self.get_keys_from_dict(self.USER_DEFAULT_COLUMN)
                         )
-                        # Обогащаем строку со значениями полей таблицы
+                        # Обогащаем дефолтными значениями строку
+                        # со значениями полей таблицы
                         values = (
                             values
                             + ', '

@@ -6,12 +6,14 @@ from api.views import (
     CommentViewSet,
     GenreViewSet,
     ReviewViewSet,
-    SignupView,
     TitleViewSet,
     MeView,
     UserViewSet,
     create_token,
     create_user)
+
+
+VERSION_URL = '^(?P<version>(v1))'
 
 router = routers.DefaultRouter()
 
@@ -47,14 +49,14 @@ router.register(
 )
 
 urlpatterns = [
-    path('v1/auth/', include([
+    re_path(rf'{VERSION_URL}/auth/', include([
         path('token/', create_token),
         path('signup/', create_user)])),
-    re_path(r'^(?P<version>(v1))/users/me/',
+    re_path(rf'{VERSION_URL}/users/me/',
             MeView.as_view(),
             name='me'
             ),
-    re_path(r'^(?P<version>(v1))/',
+    re_path(rf'{VERSION_URL}/',
             include(router.urls)
             ),
 ]
