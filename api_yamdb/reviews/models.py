@@ -4,7 +4,10 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=256)
+    name = models.CharField(
+        max_length=256,
+        verbose_name='наименование категории',
+    )
     slug = models.SlugField(unique=True)
 
     class Meta:
@@ -12,7 +15,10 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=256)
+    name = models.CharField(
+        max_length=256,
+        verbose_name='наименование жанра',
+    )
     slug = models.SlugField(unique=True)
 
     class Meta:
@@ -20,20 +26,34 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    name = models.TextField(max_length=256)
-    year = models.IntegerField()
-    rating = models.IntegerField(null=True)
-    description = models.TextField(blank=True, null=True)
+    name = models.TextField(
+        max_length=256,
+        verbose_name='наименование',
+    )
+    year = models.IntegerField(
+        verbose_name='год',
+    )
+    rating = models.IntegerField(
+        null=True,
+        verbose_name='рейтинг',
+    )
+    description = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='описание',
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
+        verbose_name='категория',
     )
     genre = models.ManyToManyField(
         Genre,
         blank=True,
         null=True,
+        verbose_name='жанр',
     )
 
     class Meta:
@@ -50,21 +70,23 @@ class Review(models.Model):
     )
     text = models.TextField(
         max_length=200,
+        verbose_name='текст отзыва',
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews',
+        verbose_name='автор отзыва',
     )
     score = models.IntegerField(
-        'оценка',
+        verbose_name='оценка',
         validators=(
             MinValueValidator(1),
             MaxValueValidator(10),
         ),
     )
     pub_date = models.DateTimeField(
-        'дата публикации',
+        verbose_name='дата публикации',
         auto_now_add=True,
         db_index=True,
     )
@@ -91,16 +113,17 @@ class Comment(models.Model):
         related_name='comments',
     )
     text = models.TextField(
-        'текст комментария',
+        verbose_name='текст комментария',
         max_length=200,
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='comments',
+        verbose_name='автор комментария',
     )
     pub_date = models.DateTimeField(
-        'дата публикации',
+        verbose_name='дата публикации',
         auto_now_add=True,
         db_index=True,
     )
