@@ -106,7 +106,7 @@ class CreateUserSerializer(serializers.Serializer):
 
 class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
-    confirmation_code = serializers.CharField(max_length=20)
+    confirmation_code = serializers.CharField(max_length=100)
 
     def validate(self, data):
         user = get_object_or_404(User, username=data.get('username'))
