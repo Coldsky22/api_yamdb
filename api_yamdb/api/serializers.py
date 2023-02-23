@@ -4,6 +4,9 @@ from rest_framework_simplejwt.tokens import AccessToken
 from django.shortcuts import get_object_or_404
 from user.models import User
 from django.core.exceptions import ValidationError
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from user.validators import me_username
+
 
 import datetime as dt
 
@@ -67,6 +70,38 @@ class UserSerializer(serializers.ModelSerializer):
 
 class MeSerializer(UserSerializer):
     role = serializers.CharField(read_only=True)
+
+
+class CreateUserSerializer(serializers.Serializer):
+    """Serializer создания нового пользователя."""
+
+    email = serializers.EmailField(max_length=254, required=True,)
+
+    username = serializers.CharField(
+        max_length=150, required=True,
+        validators=[UnicodeUsernameValidator(), me_username, ]
+    )
+
+    class Meta:
+        model = User
+        fields = ('email', 'username')
+
+    def validate(self, data):
+        username = data.get('username')
+        email = data.get('email')
+        if (
+                User.objects.filter(username=username).exists()
+                and User.objects.get(username=username).email != email
+        ):
+            raise serializers.ValidationError(
+                'Пользователь с таким username уже зарегистрирован')
+        if (
+                User.objects.filter(email=email).exists()
+                and User.objects.get(email=email).username != username
+        ):
+            raise serializers.ValidationError(
+                'Указанная почта уже зарегестрирована другим пользователем')
+        return data
 
 
 class TokenSerializer(serializers.Serializer):

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
-
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from .validators import me_username
 
 class UserRole(models.TextChoices):
     ADMIN = 'admin'

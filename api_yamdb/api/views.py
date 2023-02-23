@@ -6,12 +6,19 @@ from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
 )
+from smtplib import SMTPResponseException
+from django.conf import settings
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework import filters, status, viewsets, mixins
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import AccessToken
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from rest_framework.decorators import action, api_view, permission_classes
+
 from api.permissions import (
     IsAdminOrReadOnly,
     IsAdminUser,
@@ -29,7 +36,8 @@ from api.serializers import (
     MeSerializer,
     TokenSerializer,
     CommentSerializer,
-    ReviewSerializer)
+    ReviewSerializer,
+    CreateUserSerializer)
 from user.models import User
 from api.code_generator import send_confirmation_code
 from api.filters import TitleFilter
@@ -93,6 +101,53 @@ class UserViewSet(ModelViewSet):
         if self.kwargs.get('version') == 'v1':
             return UserSerializer
 
+    @action(
+        detail=False,
+        methods=(['GET', 'PATCH']),
+        permission_classes=[IsAuthenticated],
+    )
+    def me(self, request):
+        """Получение данных своей учётной записи."""
+        if request.method == 'GET':
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data)
+
+        serializer = UserSerializer(
+            request.user, data=request.data, partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=request.user.role)
+        return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_user(request):
+    """Создание нового пользователя."""
+    serializer = CreateUserSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data.get('username')
+    email = serializer.validated_data.get('email')
+    user, _ = User.objects.get_or_create(username=username, email=email)
+    token = default_token_generator.make_token(user)
+
+    try:
+        send_mail(
+            'confirmation code',
+            token,
+            settings.MAILING_EMAIL,
+            [email],
+            fail_silently=False,
+        )
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+    except SMTPResponseException:
+        user.delete()
+        return Response(
+            data={'error': 'Ошибка при отправки кода подтверждения!'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
 
 class MeView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -112,11 +167,22 @@ class MeView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class TokenView(TokenObtainPairView):
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def create_token(request):
+    serializer = TokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(
+        User,
+        username=serializer.validated_data["username"]
+    )
+    if default_token_generator.check_token(
+        user, serializer.validated_data["confirmation_code"]
+    ):
+        token = AccessToken.for_user(user)
+        return Response({"token": str(token)}, status=status.HTTP_200_OK)
 
-    def get_serializer_class(self):
-        if self.kwargs.get('version') == 'v1':
-            return TokenSerializer
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SignupView(APIView):
