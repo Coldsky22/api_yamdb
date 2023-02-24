@@ -54,9 +54,9 @@ urlpatterns = [
         path('signup/', create_user)])),
     re_path(rf'{VERSION_URL}/users/me/',
             MeView.as_view(),
-            name='me'
+            name='me',
             ),
     re_path(rf'{VERSION_URL}/',
-            include(router.urls)
+            include(router.urls),
             ),
 ]

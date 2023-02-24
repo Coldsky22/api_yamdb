@@ -75,11 +75,11 @@ class MeSerializer(UserSerializer):
 class CreateUserSerializer(serializers.Serializer):
     """Serializer создания нового пользователя."""
 
-    email = serializers.EmailField(max_length=254, required=True,)
+    email = serializers.EmailField(max_length=254, required=True)
 
     username = serializers.CharField(
         max_length=150, required=True,
-        validators=[UnicodeUsernameValidator(), me_username, ]
+        validators=[UnicodeUsernameValidator(), me_username],
     )
 
     class Meta:
