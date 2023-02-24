@@ -42,6 +42,7 @@ class User(AbstractUser):
         null=True,
         verbose_name='Код подтверждения',
     )
+
     password = models.CharField(blank=True, null=True, max_length=128)
 
     class Meta:
