@@ -166,7 +166,7 @@ class MeView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def create_token(request, version):
     if version == 'v1':
@@ -181,7 +181,7 @@ def create_token(request, version):
             request.data.get('confirmation_code'),
     ):
         token = AccessToken.for_user(user)
-        return Response({"token": str(token)}, status=status.HTTP_200_OK)
+        return Response({'token': str(token)}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

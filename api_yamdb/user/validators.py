@@ -9,7 +9,7 @@ class UsernameValidator(RegexValidator):
 
 
 def me_username(value):
-    if value == "me":
+    if value == 'me':
         raise ValidationError(
             _('username %(value)s is not permited'),
             params={'value': value},
