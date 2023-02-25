@@ -7,7 +7,6 @@ from api.views import (
     GenreViewSet,
     ReviewViewSet,
     TitleViewSet,
-    MeView,
     UserViewSet,
     create_token,
     create_user)
