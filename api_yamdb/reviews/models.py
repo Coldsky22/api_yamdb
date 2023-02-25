@@ -53,11 +53,23 @@ class Title(models.Model):
         Genre,
         blank=True,
         null=True,
+        through='TitleGenre',
         verbose_name='жанр',
     )
 
     class Meta:
         ordering = ('-id',)
+
+
+class TitleGenre(models.Model):
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+    )
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE,
+    )
 
 
 class Review(models.Model):
