@@ -1,43 +1,31 @@
-from django.db.models import Avg
-from reviews.models import Category, Genre, Title, Review
-from api.paginations import (GenreCategoryPagination, TitlePagination)
-from rest_framework.permissions import (
-    AllowAny,
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-)
 from smtplib import SMTPResponseException
+
 from django.conf import settings
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from rest_framework import filters, status, viewsets, mixins
-from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from rest_framework.decorators import action, api_view, permission_classes
-
-from api.permissions import (
-    IsAdminOrReadOnly,
-    IsAdminUser,
-    IsAuthorOrModerPermission,
-)
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-
-from api.serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleSerializer,
-    TitleCreateSerializer,
-    UserSerializer,
-    MeSerializer,
-    TokenSerializer,
-    CommentSerializer,
-    ReviewSerializer,
-    CreateUserSerializer)
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.tokens import AccessToken
+from reviews.models import Category, Genre, Review, Title
 from user.models import User
+
 from api.filters import TitleFilter
+from api.paginations import GenreCategoryPagination, TitlePagination
+from api.permissions import (IsAdminOrReadOnly, IsAdminUser,
+                             IsAuthorOrModerPermission)
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             CreateUserSerializer, GenreSerializer,
+                             MeSerializer, ReviewSerializer,
+                             TitleCreateSerializer, TitleSerializer,
+                             TokenSerializer, UserSerializer)
 
 
 class CategoryGenreViewSet(viewsets.GenericViewSet,

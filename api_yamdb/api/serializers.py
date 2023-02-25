@@ -1,14 +1,13 @@
-from reviews.models import Category, Genre, Title, Review, Comment
+import datetime as dt
+
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
-from django.shortcuts import get_object_or_404
+from reviews.models import Category, Comment, Genre, Review, Title
 from user.models import User
-from django.core.exceptions import ValidationError
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from user.validators import me_username
-
-
-import datetime as dt
 
 
 class CategorySerializer(serializers.ModelSerializer):

@@ -1,16 +1,9 @@
-from django.urls import include, re_path, path
+from django.urls import include, path, re_path
 from rest_framework import routers
 
-from api.views import (
-    CategoryViewSet,
-    CommentViewSet,
-    GenreViewSet,
-    ReviewViewSet,
-    TitleViewSet,
-    UserViewSet,
-    create_token,
-    create_user)
-
+from api.views import (CategoryViewSet, CommentViewSet, GenreViewSet,
+                       ReviewViewSet, TitleViewSet, UserViewSet, create_token,
+                       create_user)
 
 VERSION_URL = '^(?P<version>(v1))'
 
