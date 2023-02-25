@@ -52,10 +52,6 @@ urlpatterns = [
     re_path(rf'{VERSION_URL}/auth/', include([
         path('token/', create_token),
         path('signup/', create_user)])),
-    re_path(rf'{VERSION_URL}/users/me/',
-            MeView.as_view(),
-            name='me',
-            ),
     re_path(rf'{VERSION_URL}/',
             include(router.urls),
             ),

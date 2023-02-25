@@ -44,18 +44,17 @@ class CategoryGenreViewSet(viewsets.GenericViewSet,
                            mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            mixins.DestroyModelMixin):
-
-    serializer_class = CategorySerializer
-    lookup_field = 'slug'
-    pagination_class = GenreCategoryPagination
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    pass
 
 
 class CategoryViewSet(CategoryGenreViewSet):
 
     queryset = Category.objects.all()
+    lookup_field = 'slug'
+    pagination_class = GenreCategoryPagination
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
     def get_serializer_class(self):
         if self.kwargs.get('version') == 'v1':
@@ -65,6 +64,11 @@ class CategoryViewSet(CategoryGenreViewSet):
 class GenreViewSet(CategoryGenreViewSet):
 
     queryset = Genre.objects.all()
+    lookup_field = 'slug'
+    pagination_class = GenreCategoryPagination
+    permission_classes = (IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
     def get_serializer_class(self):
         if self.kwargs.get('version') == 'v1':
@@ -103,17 +107,18 @@ class UserViewSet(ModelViewSet):
         methods=(['GET', 'PATCH']),
         permission_classes=[IsAuthenticated],
     )
-    def me(self, request):
+    def me(self, request, version):
         """Получение данных своей учётной записи."""
         if request.method == 'GET':
-            serializer = UserSerializer(request.user)
+            if version == 'v1':
+                serializer = UserSerializer(request.user)
             return Response(serializer.data)
-
-        serializer = UserSerializer(
-            request.user, data=request.data, partial=True,
-        )
+        if version == 'v1':
+            serializer = UserSerializer(
+                request.user, data=request.data, partial=True,
+            )
         serializer.is_valid(raise_exception=True)
-        serializer.save(role=request.user.role)
+        serializer.save()
         return Response(serializer.data)
 
 
