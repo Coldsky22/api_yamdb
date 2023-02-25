@@ -11,7 +11,6 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Review, Title
@@ -102,7 +101,7 @@ class UserViewSet(ModelViewSet):
                 serializer = UserSerializer(request.user)
             return Response(serializer.data)
         if version == 'v1':
-            serializer = UserSerializer(
+            serializer = MeSerializer(
                 request.user, data=request.data, partial=True,
             )
         serializer.is_valid(raise_exception=True)
@@ -139,24 +138,6 @@ def create_user(request, version):
             data={'error': 'Ошибка при отправки кода подтверждения!'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
-
-class MeView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request, **kwargs):
-        me = get_object_or_404(User, username=request.user.username)
-        if self.kwargs.get('version') == 'v1':
-            serializer = UserSerializer(me)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request, **kwargs):
-        me = get_object_or_404(User, username=request.user.username)
-        if self.kwargs.get('version') == 'v1':
-            serializer = MeSerializer(me, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
