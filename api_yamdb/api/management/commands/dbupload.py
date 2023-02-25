@@ -43,8 +43,9 @@ class Command(BaseCommand):
                         category = Category.objects.get(
                             id=values.get('category'))
                         values['category'] = category
-                    elif ((filename == 'review.csv') or
-                          (filename == 'comments.csv')):
+                    elif (
+                        (filename == 'review.csv') or (
+                            filename == 'comments.csv')):
                         author = User.objects.get(id=values.get('author'))
                         values['author'] = author
                     model.objects.create(**values)
