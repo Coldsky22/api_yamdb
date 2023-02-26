@@ -1,5 +1,6 @@
 import csv
 from django.core.management.base import BaseCommand
+from django.db.utils import IntegrityError
 
 from reviews.models import (
     Category,
@@ -25,11 +26,21 @@ IMPORT_OBJECTS = {
 
 class Command(BaseCommand):
 
+    help = "Заполнение БД тестовыми данными из CSV файлов."
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--delete',
+            action='store_true',
+            help='Удаление записей из таблицы перед добавлением данных.',
+        )
+
     def handle(self, *args, **options):
 
         for model, filename in IMPORT_OBJECTS.items():
-            model_obj = model.objects.all()
-            model_obj.delete()
+            if options['delete']:
+                model_obj = model.objects.all()
+                model_obj.delete()
             self.stdout.write(
                 f'Загрузка файла {filename}........', ending='')
             with open(
@@ -38,6 +49,7 @@ class Command(BaseCommand):
                     encoding='UTF8',
             ) as csvfile:
                 reader = csv.DictReader(csvfile, dialect='excel')
+                create_list = []
                 for values in reader:
                     if filename == 'titles.csv':
                         category = Category.objects.get(
@@ -48,5 +60,11 @@ class Command(BaseCommand):
                             filename == 'comments.csv')):
                         author = User.objects.get(id=values.get('author'))
                         values['author'] = author
-                    model.objects.create(**values)
-                self.stdout.write(self.style.SUCCESS('SUCCESS'))
+                    create_list.append(model(**values))
+                try:
+                    model.objects.bulk_create(create_list)
+                except IntegrityError:
+                    self.stdout.write(self.style.ERROR('FAILED'))
+                    self.stdout.write('Нарушена уникальность данных.')
+                else:
+                    self.stdout.write(self.style.SUCCESS('SUCCESS'))
