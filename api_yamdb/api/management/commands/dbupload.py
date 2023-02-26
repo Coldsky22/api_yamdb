@@ -26,7 +26,7 @@ IMPORT_OBJECTS = {
 
 class Command(BaseCommand):
 
-    help = "Заполнение БД тестовыми данными из CSV файлов."
+    help = 'Заполнение БД тестовыми данными из CSV файлов.'
 
     def add_arguments(self, parser):
         parser.add_argument(
